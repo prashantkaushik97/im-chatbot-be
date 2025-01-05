@@ -102,6 +102,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>immigration-chatbot</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -109,5 +110,6 @@
 			</plugin>
 		</plugins>
 	</build>
+
 
 </project>
