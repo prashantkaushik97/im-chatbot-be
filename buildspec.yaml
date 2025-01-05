@@ -4,6 +4,8 @@ phases:
   pre_build:
     commands:
       - mvn clean install
+      - ls -l
+      - ls -l target/
       - echo Logging in to Amazon ECR...
       - aws --version
       - REPOSITORY_URI=408440505668.dkr.ecr.us-east-1.amazonaws.com/immigration-chatbot-registry
@@ -35,4 +37,4 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json
-    - target/course-service.jar
+    - target/immigration-chatbot.jar
