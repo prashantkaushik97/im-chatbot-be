@@ -54,7 +54,7 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of("http://localhost:3000")); // Allow requests from the frontend
+        corsConfig.setAllowedOrigins(List.of("http://localhost:3000", "https://im-chatbot-fe.web.app/", "http://im-chatbot-fe.web.app/"));
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow common HTTP methods
         corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Allow headers for authentication and content type
         corsConfig.setAllowCredentials(true); // Enable credentials sharing
