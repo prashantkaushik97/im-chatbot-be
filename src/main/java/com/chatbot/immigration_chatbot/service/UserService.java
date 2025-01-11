@@ -39,7 +39,7 @@ public class UserService {
             throw new RuntimeException("Invalid email or password");
         }
         String token = jwtUtil.generateToken(user.getEmail());
-        user.setToken(token);  // Assuming there is a setToken method in User model for transient storage
+        user.setToken(token);
         return user;
     }
 }

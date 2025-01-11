@@ -4,11 +4,14 @@ import com.chatbot.immigration_chatbot.dto.ChatRequest;
 import com.chatbot.immigration_chatbot.dto.ChatResponse;
 import com.chatbot.immigration_chatbot.model.Chat;
 import com.chatbot.immigration_chatbot.service.ChatService;
+import com.chatbot.immigration_chatbot.service.SessionService;
 import com.chatbot.immigration_chatbot.service.OpenAIService;
 import com.chatbot.immigration_chatbot.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.chatbot.immigration_chatbot.model.Session;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,78 +31,97 @@ public class ChatbotController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private SessionService sessionService;
+
     @PostMapping("/ask")
     public ResponseEntity<?> askQuestion(@RequestHeader("Authorization") String authHeader, @RequestBody ChatRequest request) {
-        String sessionId = authHeader.substring(7); // Extract token, skipping "Bearer "
-
-//
-//        if (!jwtUtil.validateToken(token)) {
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new ErrorResponse("Invalid JWT token", "Unauthorized access"));
-//        }
-
         String userEmail = request.getUserEmail();
         String answer = openAIService.getAnswerFromOpenAI(request.getQuestion());
 
-        Optional<Chat> optionalChat = chatService.findChatBySessionId(sessionId);
-        Chat chat = optionalChat.orElseGet(() -> new Chat()); // Use existing chat or create a new one
+        // Get the most recent session for the user
+        Optional<Session> session = sessionService.getMostRecentSession(userEmail);
 
-        if (!optionalChat.isPresent()) { // If the chat is new, initialize required fields
+        // If there is an existing session and it has not ended
+        if (session.isPresent() && (session.get().getEndTime() == null || session.get().getEndTime().isAfter(LocalDateTime.now()))) {
+            String sessionId = session.get().getSessionId();
+
+            // Try to find the chat by sessionId
+            Optional<Chat> optionalChat = chatService.findChatBySessionId(sessionId);
+            Chat chat = optionalChat.orElseGet(() -> {
+                Chat newChat = new Chat();
+                newChat.setSessionId(sessionId);
+                return newChat;
+            });
+
+            // Add the new chat entry to the existing chat
+            chat.setUserEmail(userEmail);
+            chat.setTimestamp(LocalDateTime.now());
+            Chat.ChatEntry entry = new Chat.ChatEntry();
+            entry.setQuestion(request.getQuestion());
+            entry.setAnswer(answer);
+            chat.getEntries().add(entry);
+
+            // Save the chat
+            chatService.saveChat(chat);
+
+        } else {
+            // No active session found, create a new session and a new chat
+            String sessionId = authHeader.substring(7); // Extract token, skipping "Bearer "
+            Chat chat = new Chat();
             chat.setSessionId(sessionId);
             chat.setUserEmail(userEmail);
             chat.setTimestamp(LocalDateTime.now());
             chat.setEntries(new ArrayList<>());
+
+            // Create a new chat entry
+            Chat.ChatEntry entry = new Chat.ChatEntry();
+            entry.setQuestion(request.getQuestion());
+            entry.setAnswer(answer);
+            chat.getEntries().add(entry);
+
+            // Save the new chat
+            chatService.saveChat(chat);
+
+            // Return response for a new session
+//            return ResponseEntity.status(HttpStatus.CREATED).body("New session created with sessionId: " + sessionId);
+            // Create the new session
+            LocalDateTime startTime = LocalDateTime.now();
+            sessionService.createSession(sessionId, userEmail, startTime);
         }
-
-        Chat.ChatEntry entry = new Chat.ChatEntry();
-        entry.setQuestion(request.getQuestion());
-        entry.setAnswer(answer);
-
-        chat.getEntries().add(entry); // Add new entry to the chat
-
-        chatService.saveChat(chat); // Save or update the chat in the database
-
         ChatResponse response = new ChatResponse();
         response.setAnswer(answer);
         return ResponseEntity.ok(response);
+//         Return response after processing the question
+//        return ResponseEntity.ok("Question answered successfully");
     }
+
     @GetMapping("/chats")
-    public ResponseEntity<?> getChatsBySessionId(@RequestHeader("Authorization") String authHeader) {
-        String sessionId = authHeader.substring(7); // Extract sessionId, skipping "Bearer "
+    public ResponseEntity<?> getChatsBySessionId(@RequestHeader("Authorization") String authHeader,
+                                                 @RequestParam("userEmail") String userEmail)
+    {
+//        String userEmail = request.getUserEmail();
+        Optional<Session> session = sessionService.getMostRecentSession(userEmail);
 
-//        if (!jwtUtil.validateToken(sessionId)) {
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new ErrorResponse("Invalid JWT token", "Unauthorized access"));
-//        }
+        // Check if the session exists and is still active (end time is null or after the current time)
+        if (session.isEmpty() || (session.get().getEndTime() != null && session.get().getEndTime().isBefore(LocalDateTime.now()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No active session found for the user or session has expired.");
+        }
 
-//        List<Chat> chats = chatService.findChatBySessionId(sessionId);
+        // If session is active, fetch the chats associated with the sessionId
+        String sessionId = session.get().getSessionId();
         Optional<Chat> chats = chatService.findChatBySessionId(sessionId);
+
+        // Check if chats are found
         if (chats.isEmpty()) {
             return ResponseEntity
                     .notFound()
                     .build();
         }
 
-        return ResponseEntity.ok(chats);
+        return ResponseEntity.ok(chats.get());
     }
-//
-//    @GetMapping("/chats/{userEmail}")
-//    public List<Chat> getUserChats(@PathVariable String userEmail) {
-//        List<Chat> allChats = chatService.getChatsByUserEmail(userEmail);
-//        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
-//        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
-//
-//        List<Chat> todaysChats = new ArrayList<>();
-//        for (Chat chat : allChats) {
-//            if (chat.getTimestamp().isAfter(startOfDay) && chat.getTimestamp().isBefore(endOfDay)) {
-//                todaysChats.add(chat);
-//            }
-//        }
-//        return todaysChats;
-//    }
-
     // Error response class
     static class ErrorResponse {
         private String errorMessage;

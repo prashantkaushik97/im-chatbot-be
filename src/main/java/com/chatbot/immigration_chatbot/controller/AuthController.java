@@ -39,7 +39,7 @@ public class AuthController {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getToken()  // Assuming User model can hold a transient token for this response
+                user.getToken()
         );
     }
 }

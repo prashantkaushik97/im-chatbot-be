@@ -1,9 +1,14 @@
 package com.chatbot.immigration_chatbot.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
+@Document(collection = "sessions")
 public class Session {
 
+    @Id
     private String sessionId;  // Unique identifier for the session (JWT)
     private String userEmail;  // User's email extracted from JWT
     private LocalDateTime startTime;  // Start time of the session
@@ -14,7 +19,6 @@ public class Session {
         this.sessionId = sessionId;
         this.userEmail = userEmail;
         this.startTime = startTime;
-        // endTime is initially null and can be set when the session ends
     }
 
     // Getters and Setters
