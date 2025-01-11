@@ -23,7 +23,7 @@ public String getAnswerFromOpenAI(String question) {
     // Create the user message
     ChatMessage userMessage = new ChatMessage();
     userMessage.setRole("user");
-    userMessage.setContent("Answer in 200 words and use HTML tags for text formatting. If the question is not related to immigration or international travel, tell user that you are a immigration chatbot. "+ question);
+    userMessage.setContent("Answer in 200 words and use HTML tags for text formatting. Answer only if the question is related to immigration or international travel. If question is off topic, tell user to ask immigration related questions politely"+ question);
 
     // Estimate response length needed for the model to provide a concise yet comprehensive answer
     int estimatedResponseLength = calculateOptimalResponseLength(question);
