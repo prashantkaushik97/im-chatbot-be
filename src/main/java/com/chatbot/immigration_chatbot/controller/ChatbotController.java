@@ -88,11 +88,12 @@ public class ChatbotController {
             // Create the new session
             sessionService.createSession(sessionId, userEmail, LocalDateTime.now());
         }
+        //         Return response after processing the question
+//        return ResponseEntity.ok("Question answered successfully");
         ChatResponse response = new ChatResponse();
         response.setAnswer(answer);
         return ResponseEntity.ok(response);
-//         Return response after processing the question
-//        return ResponseEntity.ok("Question answered successfully");
+
     }
 
     @GetMapping("/chats")
