@@ -2,6 +2,7 @@ package com.chatbot.immigration_chatbot.model;
 import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Chat {
@@ -9,7 +10,7 @@ public class Chat {
     private String sessionId;  // Session ID from JWT
     private String userEmail;  // User email from JWT
     private LocalDateTime timestamp;  // Consider usage based on session start or entry-specific
-    private List<ChatEntry> entries;
+    private List<ChatEntry> entries = new ArrayList<>();;
 
     // Getters and Setters for Session ID
     public String getSessionId() {

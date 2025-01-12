@@ -43,7 +43,7 @@ public class ChatbotController {
         Optional<Session> session = sessionService.getMostRecentSession(userEmail);
 
         // If there is an existing session and it has not ended
-        if (session.isPresent() && (session.get().getEndTime() == null || session.get().getEndTime().isAfter(LocalDateTime.now()))) {
+        if (session.isPresent() && (session.get().getEndTime() == null && session.get().getEndTime().isAfter(LocalDateTime.now()))) {
             String sessionId = session.get().getSessionId();
 
             // Try to find the chat by sessionId
