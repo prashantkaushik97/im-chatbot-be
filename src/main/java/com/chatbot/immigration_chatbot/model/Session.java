@@ -15,10 +15,11 @@ public class Session {
     private LocalDateTime endTime;  // End time of the session (can be set on session close)
 
     // Constructor
-    public Session(String sessionId, String userEmail, LocalDateTime startTime) {
+    public Session(String sessionId, String userEmail, LocalDateTime startTime, LocalDateTime endTime) {
         this.sessionId = sessionId;
         this.userEmail = userEmail;
         this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     // Getters and Setters

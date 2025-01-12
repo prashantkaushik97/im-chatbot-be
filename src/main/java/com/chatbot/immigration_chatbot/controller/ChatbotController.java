@@ -86,8 +86,7 @@ public class ChatbotController {
             // Return response for a new session
 //            return ResponseEntity.status(HttpStatus.CREATED).body("New session created with sessionId: " + sessionId);
             // Create the new session
-            LocalDateTime startTime = LocalDateTime.now();
-            sessionService.createSession(sessionId, userEmail, startTime);
+            sessionService.createSession(sessionId, userEmail, LocalDateTime.now());
         }
         ChatResponse response = new ChatResponse();
         response.setAnswer(answer);

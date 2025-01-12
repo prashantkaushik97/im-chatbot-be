@@ -16,7 +16,7 @@ public class SessionService {
 
     // Create a new session
     public Session createSession(String sessionId, String userEmail, LocalDateTime startTime) {
-        Session session = new Session(sessionId, userEmail, startTime);
+        Session session = new Session(sessionId, userEmail, startTime, startTime.plusHours(10));
         return sessionRepository.save(session);
     }
 
